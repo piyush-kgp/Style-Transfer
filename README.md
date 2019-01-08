@@ -1,7 +1,7 @@
 ### Gatys' Algorithm
 1. Start with a content image C, a style image S and a random image G
 2. Use a pretrained CNN model (authors used VGG) graph  in Tensorflow and mark first 4 conv nodes
-3. Define your content cost as the L2 norm between C and G
+3. Define your content cost as the L2 norm between conv4_2 node outputs of C and G
 4. Pass S and G to the graph and define style cost as the weighted sum of L2 norms of
 gram matrices at those 4 conv nodes between S and G
 4. Define the cost function as weighted sum of the content and style costs and the optimizer using Adam.
@@ -20,4 +20,3 @@ gram matrices at those 4 conv nodes between S and G
 6. Resize each image in training dataset (80k from MS-COCO) to 256x256 and train N with batch size of 4 (thus making 20k batches) for 40 k iterations (thus 2 epochs for the entire dataset). Dont pass any batch through the network more than twice (We dont want N to tune to specific C images).
 ##### Inference
 7. Any new image C can be stylized just by passing it through N. This makes it fast and deployable on devices like Android.
-
