@@ -22,6 +22,7 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+REQUIRED_PACKAGES = ['requests==2.19.1', 'tensorflow==1.12.0', 'matplotlib==2.2.2']
 setuptools.setup(
     name="style_transfer",
     version="0.0.1",
@@ -32,6 +33,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/pypa/sampleproject",
     packages=setuptools.find_packages(),
+    install_requires=REQUIRED_PACKAGES,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
