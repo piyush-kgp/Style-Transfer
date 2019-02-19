@@ -5,6 +5,3 @@ venv/
 build/
 dist/
 *.egg-info/
-docs/*
-!docs/*.ipynb
-!docs/*.md
