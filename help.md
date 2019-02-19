@@ -14,3 +14,10 @@ python -m twine upload dist/*
 ```
 python3 -m pip install --index-url https://test.pypi.org/simple/ example-pkg-your-username
 ```
+
+```
+## Be in docs folder
+sphinx-apidoc -f -o source ../
+make html
+open _build/html/index.html
+```
