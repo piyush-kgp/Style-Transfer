@@ -5,7 +5,7 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.vgg19 import preprocess_input
 from tensorflow.keras.models import Model
 
-model = VGG19(weights='imagenet', include_top=False)
+VGG = VGG19(weights='imagenet', include_top=False)
 
 img_path = 'cat.jpeg'
 cat = cv2.imread(img_path)
@@ -23,7 +23,7 @@ x = preprocess_input(x)
 # x_dash[..., 2] -= mean[2]
 # np.array_equal(x, x_dash)
 
-class StyleTransfer(object):
+class GatysStyleTransfer(object):
     def __init__(self, content_file, style_file, model):
         self.content_image = self.read_image(content_file)
         self.style_image = self.read_image(style_file)

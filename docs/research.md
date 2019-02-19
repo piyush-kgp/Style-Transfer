@@ -20,3 +20,9 @@ gram matrices at those 4 conv nodes between S and G
 6. Resize each image in training dataset (80k from MS-COCO) to 256x256 and train N with batch size of 4 (thus making 20k batches) for 40 k iterations (thus 2 epochs for the entire dataset). Dont pass any batch through the network more than twice (We dont want N to tune to specific C images).
 ##### Inference
 7. Any new image C can be stylized just by passing it through N. This makes it fast and deployable on devices like Android.
+
+
+### CycleGAN (Does not need fixing S, still fast because we need only 1 forward pass during Inference)
+1. Create pairs of C and S images.
+2. Train a CycleGAN `C--GEN1-->G--GEN2-->S` and `S--GEN2'-->G--GEN1'-->C` architectures using the CycleGAN loss function.
+3. After training the networks, `GEN1` will work as the desired style trasfer network. We can use this directly for inference with any content and style images of our choosing. This is will also be fast in inference because we need only 1 forward pass.
