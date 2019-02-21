@@ -25,7 +25,7 @@ with open("README.md", "r") as fh:
 REQUIRED_PACKAGES = ['requests==2.19.1', 'tensorflow==1.12.0', 'matplotlib==2.2.2']
 setuptools.setup(
     name="style_transfer",
-    version="0.0.2",
+    version="0.0.4",
     author="Piyush Singh",
     author_email="piyushsinghkgpian@gmail.com",
     description="A library for style transfer",
