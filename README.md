@@ -13,3 +13,7 @@ Issue Guidelines
 
 ### Contribute
 This is the Contribute
+
+### ToDo
+Create a docker image with all dependencies installed and all pb files and weights.
+This can be used to quickly test the library.
