@@ -8,3 +8,4 @@ dist/
 docs/*
 !docs/*.ipynb
 !docs/*.md
+help.md
