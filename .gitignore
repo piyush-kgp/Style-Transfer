@@ -9,3 +9,5 @@ docs/*
 !docs/*.ipynb
 !docs/*.md
 help.md
+testenv/
+.bak

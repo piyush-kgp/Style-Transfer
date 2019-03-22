@@ -73,11 +73,11 @@ class GatysStyleTransfer(object):
 
     @property
     def style_models(self):
-        with tf.name_scope('style_models'):
-            models = {layer: self.get_intermediate_model(layer_name=layer) for \
-                      layer in self.config.style_cost_layers}
-        for model in models.values():
-            model.trainable = False
+        models = {}
+        for layer in self.config.style_cost_layers:
+            with tf.name_scope('style_model_%s' %layer):
+                models[layer] =  self.get_intermediate_model(layer_name=layer)
+                models[layer].trainable = False
         return models
 
 
@@ -111,9 +111,10 @@ class GatysStyleTransfer(object):
         J_c = self.compute_content_cost()
         J_s = self.compute_style_cost()
         J = self.config.alpha*J_c + self.config.beta*J_s
-        optimizer = tf.train.AdamOptimizer(2.0)
-        style_op = optimizer.minimize(J)
-        return style_op, J
+        return J
+        # optimizer = tf.train.AdamOptimizer(2.0)
+        # style_op = optimizer.minimize(J)
+        # return style_op, J
 
 
     @staticmethod
@@ -129,10 +130,10 @@ class GatysStyleTransfer(object):
         self.gen_img = self.generate_noise_image()
         with self.sess as sess:
             writer = tf.summary.FileWriter(self.config.logdir, sess.graph)
-            sess.run(tf.initialize_all_variables())
-            for iter in range(1):
-                _, cost = sess.run(self.compute_total_cost())
-                print('Step = %i --> Cost = %f' %(iter, cost))
+            # sess.run(tf.initialize_all_variables())
+            # for iter in range(1):
+            #     _, cost = sess.run(self.compute_total_cost())
+            #     print('Step = %i --> Cost = %f' %(iter, cost))
             #     if iter%10==0:
             #         gen_img_np = self.gen_img.eval()[0]
             #         self.save_image(iter, gen_img_np)
