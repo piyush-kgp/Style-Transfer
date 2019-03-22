@@ -1,4 +1,4 @@
-import os
+œimport os
 os.chdir('/home/ec2-user/neural-style')
 
 import urllib2
@@ -41,8 +41,6 @@ def upload():
     #return '<h1>File saved to S3. You are awesome and <a href = "https://s3.amazonaws.com/bucketforflask/'+ outfile + '">here</a> is your converted image</h1>'
     outurl= 'https://s3.amazonaws.com/bucketforflask/'+ outfile
     print outurl
-    return json.dumps({'name':outurl}), 200, {'ContentType':'application/json'} 
+    return json.dumps({'name':outurl}), 200, {'ContentType':'application/json'}
 
 app.run(host = '0.0.0.0', port = 80)
-
-
