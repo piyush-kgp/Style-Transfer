@@ -7,4 +7,4 @@
 gram matrices at those 4 conv nodes between S and G
 4. Define the cost function as weighted sum of the content and style costs and the optimizer using Adam.
 5. Update the generated image by minimizing the cost.
-6. Repeat step 5 for some finite number (1000) of times after which hopefully we have a stylized image.
+6. Repeat step 6 for some finite number (1000) of times after which hopefully we have a stylized image.

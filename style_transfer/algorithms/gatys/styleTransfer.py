@@ -56,10 +56,10 @@ class GatysStyleTransfer(object):
         """
         noise_img = tf.random_normal((1,) + tuple(reversed(self.config.img_size)) + \
                     (self.config.num_channels,), name='noise_img')
-        gen_img = self.config.noise_ratio*noise_img + (1-self.config.noise_ratio) * \
+        return self.config.noise_ratio*noise_img + (1-self.config.noise_ratio) * \
                   self.content_img
-        gen_img = tf.identity(gen_img, 'gen_img')
-        return gen_img
+        # gen_img = tf.identity(gen_img, 'gen_img')
+        # return gen_img
 
 
     def get_intermediate_model(self, layer_name):
@@ -167,13 +167,13 @@ class GatysStyleTransfer(object):
         After completion G has style of S and content of C.
         """
         total_cost = self.compute_total_cost()
-        optimizer = tf.train.AdamOptimizer(2.0)
-        style_op = optimizer.minimize(total_cost)
+        # optimizer = tf.train.AdamOptimizer(2.0)
+        # style_op = optimizer.minimize(total_cost)
         with self.sess as sess:
             writer = tf.summary.FileWriter(self.config.logdir, sess.graph)
-            sess.run(tf.initialize_all_variables())
-            _, cost = sess.run([style_op, total_cost])
-            print(cost)
+            # sess.run(tf.initialize_all_variables())
+            # _, cost = sess.run([style_op, total_cost])
+            # print(cost)
             # for iter in range(1):
             #     _, cost = sess.run([style_op, total_cost])
             #     print('Step = %i --> Cost = %f' %(iter, cost))
