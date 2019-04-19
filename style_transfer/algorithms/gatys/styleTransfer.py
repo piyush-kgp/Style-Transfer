@@ -5,13 +5,13 @@ import matplotlib.pyplot as plt
 from tensorflow.keras.applications.vgg19 import VGG19
 from tensorflow.keras.models import Model
 import tensorflow as tf
-
+import os
 
 class Config:
     img_size = (400, 300)
     num_channels = 3
     noise_ratio = 0.6
-    num_iters = 100
+    num_iters = 1000
     content_cost_layer = 'block4_conv2'
     style_cost_layers = {'block1_conv1': 0.2,
                          'block2_conv1': 0.2,
@@ -24,6 +24,7 @@ class Config:
     alpha = 10
     beta = 40
     logdir = 'logs/'
+    save_dir = 'saved'
 
 
 class GatysStyleTransfer(object):
@@ -33,9 +34,9 @@ class GatysStyleTransfer(object):
     """
     def __init__(self, content_file, style_file):
         self.config = Config()
-        self.content_img = self.read_image(content_file, name='content_img')
-        self.style_img = self.read_image(style_file, name='style_img')
-        self.gen_img = self.generate_noise_image()
+        self.content_img = self.read_image(content_file, name='content_img') #tensor
+        self.style_img = self.read_image(style_file, name='style_img') #tensor
+        self.gen_img = self.generate_noise_image() #tf.variable
         self.sess = tf.Session()
 
 
@@ -56,10 +57,9 @@ class GatysStyleTransfer(object):
         """
         noise_img = tf.random_normal((1,) + tuple(reversed(self.config.img_size)) + \
                     (self.config.num_channels,), name='noise_img')
-        return self.config.noise_ratio*noise_img + (1-self.config.noise_ratio) * \
+        gen_img = self.config.noise_ratio*noise_img + (1-self.config.noise_ratio) * \
                   self.content_img
-        # gen_img = tf.identity(gen_img, 'gen_img')
-        # return gen_img
+        return tf.Variable(gen_img, name='gen_img')
 
 
     def get_intermediate_model(self, layer_name):
@@ -105,20 +105,21 @@ class GatysStyleTransfer(object):
         """
         a_C = self.content_model(self.content_img)
         a_G = self.content_model(self.gen_img)
+        tf.summary.histogram('A_C', a_C)
+        tf.summary.histogram('A_G',  a_G)
         return 1/4 * tf.reduce_mean(tf.pow(a_C - a_G, 2))
 
 
     @staticmethod
-    def gram_matrix(tensor):
+    def gram_matrix(A):
         """
         Static method to calculate gram matrix of a tensor.
         Gram matrix of an image is the matrix product of unrolled version of its
         image with its transpose. It is said to contain information about
         stylistic aspects of an image.
         """
-        _, h, w, c = tensor.get_shape().as_list()
-        tensor = tf.reshape(tensor, (h*w, c))
-        return tf.matmul(tensor, tf.transpose(tensor))
+        GA = tf.matmul(A, tf.transpose(A))
+        return GA
 
 
     def compute_style_cost(self):
@@ -129,11 +130,17 @@ class GatysStyleTransfer(object):
         for layer, coeff in self.config.style_cost_layers.items():
             a_S = self.style_models[layer](self.style_img)
             a_G = self.style_models[layer](self.gen_img)
-            _, h, w, c = a_S.shape.as_list()
-            GM_S = self.gram_matrix(a_S)
-            GM_G = self.gram_matrix(a_G)
-            layer_style_cost = 1/(4*(h*w*c)**2) * tf.reduce_sum(tf.pow(GM_S - GM_G, 2))
+            _, n_H, n_W, n_C = a_S.shape.as_list()
+            a_S = tf.transpose(tf.reshape(a_S, [n_H*n_W, n_C]))
+            a_G = tf.transpose(tf.reshape(a_G, [n_H*n_W, n_C]))
+            GS = self.gram_matrix(a_S)
+            GG = self.gram_matrix(a_G)
+            layer_style_cost = 1/(4*(n_H*n_W*n_C)**2) * tf.reduce_sum(tf.pow(GS - GG, 2))
             style_cost += coeff * layer_style_cost
+            tf.summary.histogram('A_S_'+layer, a_S)
+            tf.summary.histogram('A_G_'+layer,  a_G)
+            tf.summary.histogram('GS_'+layer, GS)
+            tf.summary.histogram('GG_'+layer, GG)
         return style_cost
 
 
@@ -144,19 +151,22 @@ class GatysStyleTransfer(object):
         J_c = self.compute_content_cost()
         J_s = self.compute_style_cost()
         J = self.config.alpha*J_c + self.config.beta*J_s
+        tf.summary.scalar('content_cost', J_c)
+        tf.summary.scalar('style_cost', J_s)
+        tf.summary.scalar('total_cost', J)
         return J
 
 
-    @staticmethod
-    def save_image(iter, np_array):
+    def save_image(self, iter, np_array):
         """
         utility method to save image
         """
+        os.makedirs(self.config.save_dir, exist_ok=True)
         fig = plt.figure(figsize=(8, 6))
         np_array = np_array*0.5 + 1
         plt.imshow(np_array)
         plt.axis('off')
-        fig.savefig('step_{}.jpg'.format(iter))
+        fig.savefig(self.config.save_dir+'/step_{}.jpg'.format(iter))
 
 
     def stylize(self):
@@ -167,23 +177,25 @@ class GatysStyleTransfer(object):
         After completion G has style of S and content of C.
         """
         total_cost = self.compute_total_cost()
-        # optimizer = tf.train.AdamOptimizer(2.0)
-        # style_op = optimizer.minimize(total_cost)
-        with self.sess as sess:
-            writer = tf.summary.FileWriter(self.config.logdir, sess.graph)
-            # sess.run(tf.initialize_all_variables())
-            # _, cost = sess.run([style_op, total_cost])
-            # print(cost)
-            # for iter in range(1):
-            #     _, cost = sess.run([style_op, total_cost])
-            #     print('Step = %i --> Cost = %f' %(iter, cost))
-            #     if iter%10==0:
-            #         gen_img_np = self.gen_img.eval()[0]
-            #         self.save_image(iter, gen_img_np)
-            # gen_img_np = self.gen_img.eval()[0]
-            # self.save_image('final', gen_img_np)
+        optimizer = tf.train.AdamOptimizer(2.0)
+        style_op = optimizer.minimize(total_cost, var_list=[self.gen_img])
+        writer = tf.summary.FileWriter(self.config.logdir, self.sess.graph)
+        self.sess.run(tf.initialize_all_variables())
+        for iter in range(self.config.num_iters):
+            tf.summary.image('content_image', self.content_img)
+            tf.summary.image('style_image', self.style_img)
+            tf.summary.image('generated_image', self.gen_img)
+            merged = tf.summary.merge_all()
+            _, cost, summary = self.sess.run([style_op, total_cost, merged])
+            writer.add_summary(summary, iter)
+            print('Step = %i --> Cost = %f' %(iter, (10**8)*cost))
+            if iter%10==0:
+                curr_img = self.sess.run(self.gen_img)[0]
+                self.save_image(iter, curr_img)
+        curr_img = self.sess.run(self.gen_img)[0]
+        self.save_image('final', curr_img)
 
 
 if __name__=='__main__':
-    gatys = GatysStyleTransfer(content_file='piyush.jpeg', style_file='starry_nights.jpeg')
-    gatys.stylize()
+    stylizer = GatysStyleTransfer(content_file='piyush.jpeg', style_file='starry_nights.jpeg')
+    stylizer.stylize()
